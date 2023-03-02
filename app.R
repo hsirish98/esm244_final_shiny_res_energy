@@ -48,9 +48,9 @@ ui <- fluidPage(
                                      # end radioButtons
                         ), # end sidebarPanel
                         
+                  
+                        mainPanel(plotOutput("tab2_plot", width ="70%", height="60%"),plotOutput("tab2_totals",width ="70%", height="60%"))
                         
-                        mainPanel(plotOutput("tab2_plot"))
-                      
                       )
                       
              ),
@@ -113,12 +113,24 @@ server <- function(input, output) {
     }
   })
   
+  tab2_reactive_tot <- reactive({
+    if(input$pick_place=="All"){
+      fuel_use_coll %>%
+        filter(end_use %in% input$pick_use)
+    } else{
+      
+      fuel_use_coll %>%
+        filter(census_region %in% input$pick_place)%>%
+        filter(end_use %in% input$pick_use)
+    }
+  })
+  
   output$tab2_plot <- renderPlot(
     if(input$pick_place=="All"){
       ggplot(data = tab2_reactive(), aes(x=fuel, y=btu, fill=census_region))+
         geom_col()+
         scale_fill_brewer(palette = "Set1")+
-        labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Sub Region") +
+        labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Census Region") +
         ylim(0,800)+
         theme_minimal()
     } else{
@@ -131,6 +143,26 @@ server <- function(input, output) {
       theme_minimal()
 
       }
+  )
+  
+
+  output$tab2_totals <- renderPlot(
+    if(input$pick_place!="All"){
+      ggplot(data = tab2_reactive(), aes(x=sub_region, y=btu, fill=sub_region))+
+        geom_col()+
+        scale_fill_brewer(palette="Set2")+
+        labs(x=input$pick_use, y="Fuel (Btu)", title="Total Btu Used by Each Subregion") +
+        ylim(0,700)+
+        theme_minimal()
+    } 
+    else{
+      ggplot(data = tab2_reactive(), aes(x=census_region, y=btu, fill=census_region))+
+        geom_col()+
+        scale_fill_brewer(palette="Set2")+
+        labs(x=input$pick_use, y="Fuel (Btu)", title="Total Btu Used by Each Region") +
+        ylim(0,700)+
+        theme_minimal()
+    }
   )
 
 

@@ -11,4 +11,10 @@ fuel_use_tidy <- fuel_use %>%
 fuel_use_tot <- fuel_use_tidy %>%
   group_by(census_region,end_use,sub_region,fuel) %>%
   summarize(btu=sum(btu, na.rm=TRUE))
+
+
+
+fuel_use_coll_all <- fuel_use_tidy %>%
+  group_by(census_region, sub_region, fuel) %>%
+  summarize(btu=sum(btu, na.rm=TRUE))
   
