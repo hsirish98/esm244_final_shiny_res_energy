@@ -11,6 +11,8 @@ my_theme <- bs_theme(
   base_font = font_google("Crimson Pro")
 )
 
+source("working_wrangle.R")
+
 ui <- fluidPage(
   theme=my_theme,
   navbarPage("Energy Modeling",
@@ -30,30 +32,28 @@ ui <- fluidPage(
                         ), # end sidebarPanel
                         
                         
-                        mainPanel("Here will be graph (consumption 1997-2020)")
+                        mainPanel("Here will go regions of the US filtered by Fuel Use")
                       )
              ), 
              tabPanel("Electricity Grid by End Use by Region",
                       sidebarLayout(
                         sidebarPanel("Different Regions of the U.S. use Different Combinations of Fuel Types.",
-                                     radioButtons(inputId = "pick_fuel",
-                                                        label = "Choose Fuel Type:",
-                                                        choices = c("Natural Gas", "Electricity", 
-                                                                    "Propane", "Fuel Oil/Kerosene")
+                                     radioButtons(inputId = "pick_place",
+                                                  label = "Choose Region:",
+                                                  choices = unique(fuel_use_tidy$census_region),
                                      ) , "This Varies by End Use",
                                      radioButtons(inputId = "pick_use",
                                                   label = "Choose End Use:",
-                                                  choices = c("Space Heating", "Water Heating",
-                                                              "Air Conditioning", "Refridgeration", "Other and Lighting") )
-                          # end radioButtons
+                                                  choices = unique(fuel_use$end_use))
+                                     # end radioButtons
                         ), # end sidebarPanel
-            
                         
-                        mainPanel("Here will go regions of the US filtered by Fuel Use")
-                        )
                         
-                      ),
-                        
+                        mainPanel(plotOutput("tab2_plot"))
+                      )
+                      
+             ),
+             
              tabPanel("Energy Use By Appliance",
                       sidebarLayout(
                         sidebarPanel("Choose Appliance Type",
@@ -64,16 +64,16 @@ ui <- fluidPage(
                                                                     "Clothes Drying", "Lighting", "Refrigeration",
                                                                     "Cooking", "Dishwasher", "TVs", "Pool Pumps", 
                                                                     "Hot Tub Pumps and Heaters"
-                                                                    ))
-                                     ), # end checkboxGroupInput
-                      
-                         # end sidebarPanel
+                                                        ))
+                        ), # end checkboxGroupInput
+                        
+                        # end sidebarPanel
                         
                         
                         mainPanel("Here will go the graphs of the relative uses of energy by each appliance for each census region!")
                       )
-                        
-                      ),
+                      
+             ),
              tabPanel("Road Trip Simulator",
                       sidebarLayout(
                         sidebarPanel("Take a  Road Trip and Track Your Energy Use and CO2 Emissions",
@@ -87,16 +87,44 @@ ui <- fluidPage(
                                                  choices = state.name),
                                      sliderInput("integer", "Number of Miles:",
                                                  min = 0, max = 500, value = 500)
-                                     ),
+                        ),
                         mainPanel("CO2 Emissions and Energy Use Will be Calculated here!"),
-                                     )
-             
+                      )
+                      
              )
   )
 )
-  
- ##end UI
 
-server <- function(input, output) {}
+##end UI
+
+server <- function(input, output) {
+  tab2_reactive <- reactive({
+    fuel_use_tidy %>%
+      filter(census_region %in% input$pick_place)%>%
+    filter(end_use %in% input$pick_use)
+  })
+
+  output$tab2_plot <- renderPlot(
+    ggplot(data = tab2_reactive(), aes(x=fuel, y=btu, fill=sub_region))+
+      geom_col()+
+      scale_fill_brewer(palette = "Set2")+
+      labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Sub Region") +
+      ylim(0,800)+
+      theme_minimal()
+  )
+}
 
 shinyApp(ui = ui, server = server)
+
+
+
+
+
+
+
+
+
+
+
+
+

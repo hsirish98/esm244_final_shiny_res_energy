@@ -1,0 +1,22 @@
+---
+title: "working_wrangle"
+author: "Hannah Irish"
+date: "2023-03-01"
+output: html_document
+---
+
+```{r setup, echo=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+library(tidyverse)
+library(here)
+```
+
+```{r}
+fuel_use <- read_csv(here("data","by_fuel_by_end_use.csv"))%>%
+  janitor::clean_names() 
+
+fuel_use_tidy <- fuel_use %>%
+   pivot_longer(cols=c(4:7), name_to="fuel",,values_to = "btu")
+
+```
+

@@ -1,0 +1,46 @@
+census_region,sub_region,end_use,Electricity,Natural gas,Propane,Fuel oil/kerosene
+Northeast,New England,Space Heating,12,109,22,337
+Northeast,New England,Water Heating,19,43,7,54
+Northeast,New England,Air Conditioning,9,NA,,
+Northeast,New England,Refrigerators,12,NA,,
+Northeast,New England,Other,92,10,4,
+Northeast,Middle Atlantic,Space Heating,57,537,30,182
+Northeast,Middle Atlantic,Water Heating,53,169,9,24
+Northeast,Middle Atlantic,Air Conditioning,51,NA,,
+Northeast,Middle Atlantic,Refrigerators,36,NA,,
+Northeast,Middle Atlantic,Other,247,53,7,
+Midwest,East North Central,Space Heating,84,863,47,
+Midwest,East North Central,Water Heating,68,214,,
+Midwest,East North Central,Air Conditioning,62,,,
+Midwest,East North Central,Refrigerators,46,,,
+Midwest,East North Central,Other,304,45,5,
+Midwest,West North Central,Space Heating,47,294,35,
+Midwest,West North Central,Water Heating,34,84,7,
+Midwest,West North Central,Air Conditioning,35,,,
+Midwest,West North Central,Refrigerators,22,,,
+Midwest,West North Central,Other,158,43,2,
+South,South Atlantic,Space Heating,161,252,41,45
+South,South Atlantic,Water Heating,176,104,11,
+South,South Atlantic,Air Conditioning,238,,,
+South,South Atlantic,Refrigerators,61,,,
+South,South Atlantic,Other,441,35,,
+South,East South Central,Space Heating,73,77,15,43
+South,East South Central,Water Heating,65,27,3,
+South,East South Central,Air Conditioning,61,,,
+South,East South Central,Refrigerators,18,,,
+South,East South Central,Other,140,15,2,
+South,West South Central,Space Heating,100,165,20,
+South,West South Central,Water Heating,83,82,7,
+South,West South Central,Air Conditioning,179,,,
+South,West South Central,Refrigerators,37,,,
+South,West South Central,Other,272,29,6,
+West,Moutain,Space Heating,27,212,11,
+West,Moutain,Water Heating,26,103,9,
+West,Moutain,Air Conditioning,50,,,
+West,Moutain,Refrigerators,23,,,
+West,Moutain,Other,148,17,,
+West,Pacific,Space Heating,76,168,13,7
+West,Pacific,Water Heating,67,193,11,
+West,Pacific,Air Conditioning,45,,,
+West,Pacific,Refrigerators,46,,,
+West,Pacific,Other,260,55,6,
