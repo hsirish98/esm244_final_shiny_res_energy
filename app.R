@@ -11,7 +11,7 @@ my_theme <- bs_theme(
   base_font = font_google("Crimson Pro")
 )
 
-source("working_wrangle.R")
+source("tab2_data_wrangle.R")
 
 ui <- fluidPage(
   theme=my_theme,
@@ -40,7 +40,7 @@ ui <- fluidPage(
                         sidebarPanel("Different Regions of the U.S. use Different Combinations of Fuel Types.",
                                      radioButtons(inputId = "pick_place",
                                                   label = "Choose Region:",
-                                                  choices = unique(fuel_use_tidy$census_region),
+                                                  choices = c("All",unique(fuel_use_tidy$census_region)),
                                      ) , "This Varies by End Use",
                                      radioButtons(inputId = "pick_use",
                                                   label = "Choose End Use:",
@@ -50,6 +50,7 @@ ui <- fluidPage(
                         
                         
                         mainPanel(plotOutput("tab2_plot"))
+                      
                       )
                       
              ),
@@ -74,19 +75,19 @@ ui <- fluidPage(
                       )
                       
              ),
-             tabPanel("Road Trip Simulator",
+             tabPanel("Carpool to UCSB?",
                       sidebarLayout(
                         sidebarPanel("Take a  Road Trip and Track Your Energy Use and CO2 Emissions",
                                      radioButtons(inputId = "pick_car",
                                                   label = "Choose your Vehicle:",
                                                   choices = c("Battery Electric Vehicle", "Traditional Hybrid", "Plug-in Hybrid", 
-                                                              "2 Door ICV", "4 Door ICV", "Pickup Truck")
+                                                              "2 Door ICV", "4 Door ICV", "Pickup Truck", "I Walk!", "I Bike!")
                                      ),
                                      selectInput(inputId = "state",
                                                  label = "Choose State",
                                                  choices = state.name),
-                                     sliderInput("integer", "Number of Miles:",
-                                                 min = 0, max = 500, value = 500)
+                                     sliderInput("integer", "Number of Miles you live from School:",
+                                                 min = 0, max = 20, value = 20)
                         ),
                         mainPanel("CO2 Emissions and Energy Use Will be Calculated here!"),
                       )
@@ -98,20 +99,41 @@ ui <- fluidPage(
 ##end UI
 
 server <- function(input, output) {
+  
+  
   tab2_reactive <- reactive({
+    if(input$pick_place=="All"){
+      fuel_use_tot %>%
+        filter(end_use %in% input$pick_use)
+    } else{
+    
     fuel_use_tidy %>%
       filter(census_region %in% input$pick_place)%>%
-    filter(end_use %in% input$pick_use)
+      filter(end_use %in% input$pick_use)
+    }
   })
-
+  
   output$tab2_plot <- renderPlot(
+    if(input$pick_place=="All"){
+      ggplot(data = tab2_reactive(), aes(x=fuel, y=btu, fill=census_region))+
+        geom_col()+
+        scale_fill_brewer(palette = "Set1")+
+        labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Sub Region") +
+        ylim(0,800)+
+        theme_minimal()
+    } else{
+    
     ggplot(data = tab2_reactive(), aes(x=fuel, y=btu, fill=sub_region))+
       geom_col()+
       scale_fill_brewer(palette = "Set2")+
       labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Sub Region") +
       ylim(0,800)+
       theme_minimal()
+
+      }
   )
+
+
 }
 
 shinyApp(ui = ui, server = server)
