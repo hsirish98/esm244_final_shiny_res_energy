@@ -2,7 +2,7 @@ library(shiny)
 library(tidyverse)
 library(palmerpenguins)
 library(bslib)
-data(state)
+
 
 my_theme <- bs_theme(
   bg = "#B2D3C2",
@@ -11,11 +11,21 @@ my_theme <- bs_theme(
   base_font = font_google("Crimson Pro")
 )
 
-source("tab2_data_wrangle.R")
+source("wrangle_files/tab2_data_wrangle.R")
+source("wrangle_files/map_wrangle.R")
 
 ui <- fluidPage(
   theme=my_theme,
   navbarPage("Energy Modeling",
+             tabPanel("Overview",
+                        mainPanel(strong(p("Welcome to my shiny app!")),
+                                    p("The purpose of this shiny app is to take a look at current
+                                      trends in residential/personal energy consumption, and 
+                                      get a feel for the task it will take to electrify the residential
+                                      sector")
+                      
+                        )
+             ),
              tabPanel("Dashboard: Total Residential Energy Consumption (1997-2020)",
                       sidebarLayout(
                         sidebarPanel("Choose End Use (or Total Energy Consumption)",
@@ -49,8 +59,27 @@ ui <- fluidPage(
                         ), # end sidebarPanel
                         
                   
-                        mainPanel(plotOutput("tab2_plot", width ="70%", height="60%"),plotOutput("tab2_totals",width ="70%", height="60%"))
+                        mainPanel(plotOutput("fe_plot", width ="100%", height="60%"),
+                                  plotOutput("fe_totals",width ="100%", height="60%"))
                         
+                      )
+                      
+             ),
+             
+             tabPanel("How Electrified Are the States, then?",
+                      sidebarLayout(
+                        sidebarPanel("See the Percent of Homes in States that are totally Electrified",
+                                     sliderInput(inputId = "choose_pct",
+                                                  label = "See How many States are totally Electrified",
+                                                  min= (min(states_contig_sf$pct_e,na.rm=TRUE)),
+                                                 max=(max(states_contig_sf$pct_e,na.rm=TRUE)), 
+                                                 value=7)
+                                     ),
+                                  
+                      
+                        mainPanel(plotOutput("pct_state",width="70%", height="70%"),
+                                  plotOutput("alaska",width="40%", height="40%"),
+                                  plotOutput("hawaii", width="40%",height="40%"))
                       )
                       
              ),
@@ -100,44 +129,58 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   
+## Tab 1: Overview
+
+
   
-  tab2_reactive <- reactive({
+## Tab 3: Region + End Use + Fuel
+  ## Taking Inputs
+  fe_reactive <- reactive({
+    ## if "ALL" is selected
     if(input$pick_place=="All"){
       fuel_use_tot %>%
         filter(end_use %in% input$pick_use)
     } else{
     
+    ## if a census region is selected
     fuel_use_tidy %>%
       filter(census_region %in% input$pick_place)%>%
       filter(end_use %in% input$pick_use)
     }
   })
   
-  tab2_reactive_tot <- reactive({
+
+   ##input for bottom graph
+  fe_reactive_tot <- reactive({
+    ## if "ALL is selected"
     if(input$pick_place=="All"){
       fuel_use_coll %>%
-        filter(end_use %in% input$pick_use)
+        filter(end_use %in% input$pick_use) 
     } else{
-      
+      ## if census region is selected
       fuel_use_coll %>%
         filter(census_region %in% input$pick_place)%>%
         filter(end_use %in% input$pick_use)
     }
   })
   
-  output$tab2_plot <- renderPlot(
+  ## plots for Output
+  
+  ##top graph (by region)
+  output$fe_plot <- renderPlot(
+    ##if "ALL" is selected
     if(input$pick_place=="All"){
-      ggplot(data = tab2_reactive(), aes(x=fuel, y=btu, fill=census_region))+
-        geom_col()+
-        scale_fill_brewer(palette = "Set1")+
+      ggplot(data = fe_reactive(), aes(x=fuel, y=btu, fill=census_region))+
+        geom_col(position="dodge")+
+        scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
         labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Census Region") +
         ylim(0,800)+
         theme_minimal()
     } else{
-    
-    ggplot(data = tab2_reactive(), aes(x=fuel, y=btu, fill=sub_region))+
-      geom_col()+
-      scale_fill_brewer(palette = "Set2")+
+    ## if census region is selected
+    ggplot(data = fe_reactive(), aes(x=fuel, y=btu, fill=sub_region))+
+      geom_col(position="dodge")+
+      scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
       labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Sub Region") +
       ylim(0,800)+
       theme_minimal()
@@ -145,24 +188,67 @@ server <- function(input, output) {
       }
   )
   
-
-  output$tab2_totals <- renderPlot(
+ ##bottom graph (totals)
+  output$fe_totals <- renderPlot(
+    ##if "all" is selected
     if(input$pick_place!="All"){
-      ggplot(data = tab2_reactive(), aes(x=sub_region, y=btu, fill=sub_region))+
+      ggplot(data = fe_reactive(), aes(x=sub_region, y=btu, fill=sub_region))+
         geom_col()+
-        scale_fill_brewer(palette="Set2")+
+        scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
         labs(x=input$pick_use, y="Fuel (Btu)", title="Total Btu Used by Each Subregion") +
         ylim(0,700)+
         theme_minimal()
     } 
     else{
-      ggplot(data = tab2_reactive(), aes(x=census_region, y=btu, fill=census_region))+
+      ##if census region is selected
+      ggplot(data = fe_reactive(), aes(x=census_region, y=btu, fill=census_region))+
         geom_col()+
-        scale_fill_brewer(palette="Set2")+
+        scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
         labs(x=input$pick_use, y="Fuel (Btu)", title="Total Btu Used by Each Region") +
         ylim(0,700)+
         theme_minimal()
     }
+  )
+  
+  
+  pct_e_reactive <- reactive({
+   
+      states_contig_sf %>%
+        mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified","not"))
+  })
+  
+  alaska_reactive <- reactive({
+    
+    alaska_sf %>%
+      mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified","not"))
+  })
+  
+  hawaii_reactive <- reactive({
+    
+    hawaii_sf %>%
+      mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified","not"))
+  })
+
+  
+  output$pct_state <- renderPlot(
+    ggplot()+
+      geom_sf(data=pct_e_reactive(), aes(fill=as.factor(color_plot)))+
+      scale_fill_manual(values=c("green","gray","gray4"))+
+      theme_void() 
+  )
+  
+  output$alaska <- renderPlot(
+    ggplot()+
+      geom_sf(data=alaska_reactive(), aes(fill=color_plot))+
+      scale_fill_manual(values=c("gray","green"))+
+      theme_void() 
+  )
+  
+  output$hawaii <- renderPlot(
+    ggplot()+
+      geom_sf(data=hawaii_reactive(), aes(fill=color_plot))+
+      scale_fill_manual(values=c("gray","green"))+
+      theme_void() 
   )
 
 
