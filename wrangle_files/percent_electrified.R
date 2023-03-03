@@ -7,7 +7,7 @@ pct_e <- readxl::read_xlsx(here("data/states_fuels_used.xlsx")) %>%
   mutate(home_is_all_electric=as.numeric(home_is_all_electric))
 
 pct_e_20 <- pct_e %>%
-  filter(!(x1 %in% c("District of Columbia", "All homes", "Alaska", "Hawaii")))
+  filter(!(x1 %in% c("District of Columbia", "All homes")))
 
 pct_alaska <- pct_e %>%
   filter(x1=="Alaska")

@@ -77,9 +77,7 @@ ui <- fluidPage(
                                      ),
                                   
                       
-                        mainPanel(plotOutput("pct_state",width="70%", height="70%"),
-                                  plotOutput("alaska",width="40%", height="40%"),
-                                  plotOutput("hawaii", width="40%",height="40%"))
+                        mainPanel(plotOutput("pct_state",width="100%", height="200%"))
                       )
                       
              ),
@@ -214,7 +212,8 @@ server <- function(input, output) {
   pct_e_reactive <- reactive({
    
       states_contig_sf %>%
-        mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified","not"))
+        mutate(color_plot = ifelse(pct_e=="NA","NA","not"))%>%
+            mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified", color_plot)) 
   })
   
   alaska_reactive <- reactive({
@@ -234,22 +233,10 @@ server <- function(input, output) {
     ggplot()+
       geom_sf(data=pct_e_reactive(), aes(fill=as.factor(color_plot)))+
       scale_fill_manual(values=c("green","gray","gray4"))+
+      labs(title = paste("At least",as.character(input$choose_pct),"% of homes"))+
       theme_void() 
   )
-  
-  output$alaska <- renderPlot(
-    ggplot()+
-      geom_sf(data=alaska_reactive(), aes(fill=color_plot))+
-      scale_fill_manual(values=c("gray","green"))+
-      theme_void() 
-  )
-  
-  output$hawaii <- renderPlot(
-    ggplot()+
-      geom_sf(data=hawaii_reactive(), aes(fill=color_plot))+
-      scale_fill_manual(values=c("gray","green"))+
-      theme_void() 
-  )
+
 
 
 }

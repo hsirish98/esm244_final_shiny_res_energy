@@ -8,7 +8,7 @@ states_sf <- read_sf(here("spat_dat"),layer="ne_110m_admin_1_states_provinces") 
 
   
 states_contig_sf <- states_sf %>%
-  filter(!(postal %in% c("DC", "AK","HI")))
+  filter(!(postal %in% c("DC")))
 
 states_contig_sf$pct_e <- pct_e_20$home_is_all_electric
 
