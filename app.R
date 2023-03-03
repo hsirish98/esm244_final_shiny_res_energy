@@ -59,14 +59,19 @@ ui <- fluidPage(
                         ), # end sidebarPanel
                         
                   
-                        mainPanel(plotOutput("fe_plot", width ="100%", height="60%"),
-                                  plotOutput("fe_totals",width ="100%", height="60%"))
+                        mainPanel(
+                          tabsetPanel(
+                            tabPanel("Overview", plotOutput("fe_plot")),
+                            tabPanel("Total by Region",plotOutput("fe_totals"))
+                          )
+  
+                        )
                         
                       )
                       
              ),
              
-             tabPanel("How Electrified Are the States, then?",
+             tabPanel("Electrification of the States",
                       sidebarLayout(
                         sidebarPanel("See the Percent of Homes in States that are totally Electrified",
                                      sliderInput(inputId = "choose_pct",
@@ -77,7 +82,14 @@ ui <- fluidPage(
                                      ),
                                   
                       
-                        mainPanel(plotOutput("pct_state",width="100%", height="200%"))
+                        mainPanel(
+                          tabsetPanel(
+                            tabPanel("Map",plotOutput("pct_state")),
+                            tabPanel("Analysis",textOutput("elec_summary"))
+                            
+                            
+                          )
+                        )
                       )
                       
              ),
@@ -99,24 +111,6 @@ ui <- fluidPage(
                         
                         
                         mainPanel("Here will go the graphs of the relative uses of energy by each appliance for each census region!")
-                      )
-                      
-             ),
-             tabPanel("Carpool to UCSB?",
-                      sidebarLayout(
-                        sidebarPanel("Take a  Road Trip and Track Your Energy Use and CO2 Emissions",
-                                     radioButtons(inputId = "pick_car",
-                                                  label = "Choose your Vehicle:",
-                                                  choices = c("Battery Electric Vehicle", "Traditional Hybrid", "Plug-in Hybrid", 
-                                                              "2 Door ICV", "4 Door ICV", "Pickup Truck", "I Walk!", "I Bike!")
-                                     ),
-                                     selectInput(inputId = "state",
-                                                 label = "Choose State",
-                                                 choices = state.name),
-                                     sliderInput("integer", "Number of Miles you live from School:",
-                                                 min = 0, max = 20, value = 20)
-                        ),
-                        mainPanel("CO2 Emissions and Energy Use Will be Calculated here!"),
                       )
                       
              )
@@ -152,13 +146,15 @@ server <- function(input, output) {
   fe_reactive_tot <- reactive({
     ## if "ALL is selected"
     if(input$pick_place=="All"){
-      fuel_use_coll %>%
+      fuel_use_coll_all %>%
         filter(end_use %in% input$pick_use) 
     } else{
       ## if census region is selected
-      fuel_use_coll %>%
+      fuel_use_tot %>%
         filter(census_region %in% input$pick_place)%>%
-        filter(end_use %in% input$pick_use)
+        filter(end_use %in% input$pick_use) %>%
+        group_by(sub_region)%>%
+        summarize(sum=sum(btu))
     }
   })
   
@@ -171,16 +167,16 @@ server <- function(input, output) {
       ggplot(data = fe_reactive(), aes(x=fuel, y=btu, fill=census_region))+
         geom_col(position="dodge")+
         scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
-        labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Census Region") +
-        ylim(0,800)+
+        labs(x=input$pick_use, y="Fuel (Trillion Btu)", title=input$pick_place, fill="Census Region") +
+        ylim(0,600)+
         theme_minimal()
     } else{
     ## if census region is selected
     ggplot(data = fe_reactive(), aes(x=fuel, y=btu, fill=sub_region))+
       geom_col(position="dodge")+
       scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
-      labs(x=input$pick_use, y="Fuel (Btu)", title=input$pick_place, fill="Sub Region") +
-      ylim(0,800)+
+      labs(x=input$pick_use, y="Fuel (Trillion Btu)", title=input$pick_place, fill="Sub Region") +
+      ylim(0,600)+
       theme_minimal()
 
       }
@@ -188,22 +184,22 @@ server <- function(input, output) {
   
  ##bottom graph (totals)
   output$fe_totals <- renderPlot(
-    ##if "all" is selected
+    ##if census region is selected
     if(input$pick_place!="All"){
-      ggplot(data = fe_reactive(), aes(x=sub_region, y=btu, fill=sub_region))+
+      ggplot(data = fe_reactive_tot(), aes(x=sub_region, y=sum, fill=sub_region))+
         geom_col()+
         scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
-        labs(x=input$pick_use, y="Fuel (Btu)", title="Total Btu Used by Each Subregion") +
-        ylim(0,700)+
+        labs(x=input$pick_use, y="Fuel (Trillion Btu)", title="Total Btu Used by Each Subregion (Trillions") +
+        ylim(0,1000)+
         theme_minimal()
     } 
     else{
-      ##if census region is selected
-      ggplot(data = fe_reactive(), aes(x=census_region, y=btu, fill=census_region))+
+      ##if "ALL" is selected
+      ggplot(data = fe_reactive_tot(), aes(x=census_region, y=btu, fill=census_region))+
         geom_col()+
         scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
-        labs(x=input$pick_use, y="Fuel (Btu)", title="Total Btu Used by Each Region") +
-        ylim(0,700)+
+        labs(x=input$pick_use, y="Fuel (Trillion Btu)", title="Total Btu Used by Each Region (Trillions)") +
+        ylim(0,1000)+
         theme_minimal()
     }
   )
@@ -236,6 +232,17 @@ server <- function(input, output) {
       labs(title = paste("At least",as.character(input$choose_pct),"% of homes"))+
       theme_void() 
   )
+  
+  output$elec_summary <- renderText({
+    "In order to reach nationwide carbon neutrality goals, 
+    we will have to electrify energy services wherever possible. 
+    The map which shows (by 2020) the percent of each states' homes that are 
+    totally electrified shows that we have a lot of progress to make 
+    to reach this goal. As can be seen from  the tab before about different 
+    regions on different fuel mixes, we currently have a legacy of relying on
+    gas and other fuels to provide much needed services like space heating.
+    77% is the max percent of homes electrified in any given state, in Colorado."
+  })
 
 
 
