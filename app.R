@@ -74,11 +74,11 @@ ui <- fluidPage(
              tabPanel("Electrification of the States",
                       sidebarLayout(
                         sidebarPanel("See the Percent of Homes in States that are totally Electrified",
-                                     sliderInput(inputId = "choose_pct",
-                                                  label = "See How many States are totally Electrified",
-                                                  min= (min(states_contig_sf$pct_e,na.rm=TRUE)),
-                                                 max=(max(states_contig_sf$pct_e,na.rm=TRUE)), 
-                                                 value=7)
+                              
+                                     checkboxGroupInput(inputId = "pick_subr",
+                                                        label = "Sub Region where the following is the main fuel:",
+                                                        choices = unique(fuel_use_tidy$fuel))
+                                                        
                                      ),
                                   
                       
@@ -211,9 +211,9 @@ server <- function(input, output) {
   
   pct_e_reactive <- reactive({
    
-    states_contig_sf %>%
-        mutate(color_plot = ifelse(pct_e=="NA","NA","not"))%>%
-            mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified", color_plot)) 
+    
+    states_contig_sf 
+    
   })
 
   
@@ -222,7 +222,7 @@ server <- function(input, output) {
       geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_e))+
       scale_fill_gradient(low="darkseagreen1", high="green4")+
       labs(fill="Percent of Homes Fully Electrified")+
-      labs(title = paste("States with at least",as.character(input$choose_pct),"% of homes electrified"))+
+      labs(title = "Percent of Homes Fully Electrified")+
       theme_void() 
   }, bg= "transparent"
   )
