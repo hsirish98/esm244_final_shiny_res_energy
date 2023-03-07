@@ -12,12 +12,6 @@ fuel_use_tot <- fuel_use_tidy %>%
   group_by(census_region,end_use,sub_region,fuel) %>%
   summarize(btu=sum(btu, na.rm=TRUE))
 
-fuel_test <- fuel_use_tot %>%
-  filter(census_region %in% "Northeast")%>%
-  filter(end_use %in% "Space Heating") %>%
-  group_by(sub_region)%>%
-  summarize(sum=sum(btu))
-
 
 fuel_use_coll_all <- fuel_use_tidy %>%
   group_by(census_region, sub_region, end_use) %>%

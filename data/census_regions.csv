@@ -1,51 +1,51 @@
-census_region,state
-northeast,CT
-northeast,ME
-northeast,MA
-northeast,NH
-northeast,RI
-northeast,VT
-northeast,NJ
-northeast,NY
-northeast,PA
-midwest,IL
-midwest,IN
-midwest,MI
-midwest,OH
-midwest,WI
-midwest,IA
-midwest,KS
-midwest,MN
-midwest,MO
-midwest,NE
-midwest,ND
-midwest,SD
-south,DE
-south,FL
-south,GA
-south,MD
-south,NC
-south,SC
-south,VA
-south,WV
-south,AL
-south,KY
-south,MS
-south,TN
-south,AS
-south,LA
-south,OK
-south,TX
-west,AZ
-west,CO
-west,ID
-west,MT
-west,NV
-west,NM
-west,UT
-west,WY
-west,AK
-west,CA
-west,HI
-west,OR
-west,WA
+census_region,sub_region,state
+northeast,New England,CT
+northeast,New England,ME
+northeast,New England,MA
+northeast,New England,NH
+northeast,New England,RI
+northeast,New England,VT
+northeast,Middle Atlantic,NJ
+northeast,Middle Atlantic,NY
+northeast,Middle Atlantic,PA
+midwest,East North Central,IL
+midwest,East North Central,IN
+midwest,East North Central,MI
+midwest,East North Central,OH
+midwest,East North Central,WI
+midwest,West North Central,IA
+midwest,West North Central,KS
+midwest,West North Central,MN
+midwest,West North Central,MO
+midwest,West North Central,NE
+midwest,West North Central,ND
+midwest,West North Central,SD
+south,South Atlantic,DE
+south,South Atlantic,FL
+south,South Atlantic,GA
+south,South Atlantic,MD
+south,South Atlantic,NC
+south,South Atlantic,SC
+south,South Atlantic,VA
+south,South Atlantic,WV
+south,East South Central,AL
+south,East South Central,KY
+south,East South Central,MS
+south,East South Central,TN
+south,West South Central,AR
+south,West South Central,LA
+south,West South Central,OK
+south,West South Central,TX
+west,Mountain,AZ
+west,Mountain,CO
+west,Mountain,ID
+west,Mountain,MT
+west,Mountain,NV
+west,Mountain,NM
+west,Mountain,UT
+west,Mountain,WY
+west,Pacific,AK
+west,Pacific,CA
+west,Pacific,HI
+west,Pacific,OR
+west,Pacific,WA

@@ -84,8 +84,8 @@ ui <- fluidPage(
                       
                         mainPanel(
                           tabsetPanel(
-                            tabPanel("Map",plotOutput("pct_state")),
-                            tabPanel("Analysis",textOutput("elec_summary"))
+                            tabPanel("Analysis",textOutput("elec_summary")),
+                            tabPanel("Map",plotOutput("pct_state"))
                             
                             
                           )
@@ -161,7 +161,7 @@ server <- function(input, output) {
   ## plots for Output
   
   ##top graph (by region)
-  output$fe_plot <- renderPlot(
+  output$fe_plot <- renderPlot( {
     ##if "ALL" is selected
     if(input$pick_place=="All"){
       ggplot(data = fe_reactive(), aes(x=fuel, y=btu, fill=census_region))+
@@ -179,11 +179,13 @@ server <- function(input, output) {
       ylim(0,600)+
       theme_minimal()
 
-      }
+    }
+  }, bg="transparent"
   )
   
  ##bottom graph (totals)
-  output$fe_totals <- renderPlot(
+  output$fe_totals <- renderPlot( 
+    {
     ##if census region is selected
     if(input$pick_place!="All"){
       ggplot(data = fe_reactive_tot(), aes(x=sub_region, y=sum, fill=sub_region))+
@@ -202,35 +204,27 @@ server <- function(input, output) {
         ylim(0,1000)+
         theme_minimal()
     }
+    }, bg="transparent"
+    
   )
   
   
   pct_e_reactive <- reactive({
    
-      states_contig_sf %>%
+    states_contig_sf %>%
         mutate(color_plot = ifelse(pct_e=="NA","NA","not"))%>%
             mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified", color_plot)) 
   })
-  
-  alaska_reactive <- reactive({
-    
-    alaska_sf %>%
-      mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified","not"))
-  })
-  
-  hawaii_reactive <- reactive({
-    
-    hawaii_sf %>%
-      mutate(color_plot = ifelse(pct_e>=(input$choose_pct),"electrified","not"))
-  })
 
   
-  output$pct_state <- renderPlot(
+  output$pct_state <- renderPlot({
     ggplot()+
-      geom_sf(data=pct_e_reactive(), aes(fill=as.factor(color_plot)))+
-      scale_fill_manual(values=c("green","gray","gray4"))+
-      labs(title = paste("At least",as.character(input$choose_pct),"% of homes"))+
+      geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_e))+
+      scale_fill_gradient(low="darkseagreen1", high="green4")+
+      labs(fill="Percent of Homes Fully Electrified")+
+      labs(title = paste("States with at least",as.character(input$choose_pct),"% of homes electrified"))+
       theme_void() 
+  }, bg= "transparent"
   )
   
   output$elec_summary <- renderText({

@@ -12,6 +12,11 @@ states_contig_sf <- states_sf %>%
 
 states_contig_sf$pct_e <- pct_e_20$home_is_all_electric
 
+census_reg <- read_csv(here::here("data/census_regions.csv"))
+colnames(census_reg)[3]<- "postal"
+
+states_contig_sf <- merge(states_contig_sf,census_reg, by="postal")
+
 alaska_sf <- states_sf %>%
   filter(postal=="AK")
 
