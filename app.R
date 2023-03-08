@@ -1,7 +1,7 @@
 library(shiny)
 library(tidyverse)
-library(palmerpenguins)
 library(bslib)
+library(shinyWidgets)
 
 
 my_theme <- bs_theme(
@@ -11,7 +11,7 @@ my_theme <- bs_theme(
   base_font = font_google("Crimson Pro")
 )
 
-source("wrangle_files/tab2_data_wrangle.R")
+source("wrangle_files/fuel_use_region.R")
 source("wrangle_files/map_wrangle.R")
 
 ui <- fluidPage(
@@ -73,11 +73,23 @@ ui <- fluidPage(
              
              tabPanel("Electrification of the States",
                       sidebarLayout(
-                        sidebarPanel("See the Percent of Homes in States that are totally Electrified",
+                        sidebarPanel("Choose the Housing Characteristic:",
                               
-                                     checkboxGroupInput(inputId = "pick_subr",
-                                                        label = "Sub Region where the following is the main fuel:",
-                                                        choices = unique(fuel_use_tidy$fuel))
+                                     switchInput(
+                                       inputId = "pick_mode",
+                                       label = NULL,
+                                       value = TRUE,
+                                       onLabel = "Fully Electric",
+                                       offLabel = "Natural Gas Stove",
+                                       onStatus = NULL,
+                                       offStatus = NULL,
+                                       size = "default",
+                                       labelWidth = "auto",
+                                       handleWidth = "auto",
+                                       disabled = FALSE,
+                                       inline = FALSE,
+                                       width = NULL
+                                     )
                                                         
                                      ),
                                   
@@ -94,9 +106,9 @@ ui <- fluidPage(
                       
              ),
              
-             tabPanel("Energy Use By Appliance",
+             tabPanel("Energy Insecurity",
                       sidebarLayout(
-                        sidebarPanel("Choose Appliance Type",
+                        sidebarPanel(
                                      checkboxGroupInput(inputId = "pick_appliance",
                                                         label = "Choose Appliance(s):",
                                                         choices = c("Space Heating", "Air Conditioning",
@@ -169,7 +181,17 @@ server <- function(input, output) {
         scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
         labs(x=input$pick_use, y="Fuel (Trillion Btu)", title=input$pick_place, fill="Census Region") +
         ylim(0,600)+
-        theme_minimal()
+        theme_minimal() +
+        theme(axis.text.y = element_text(size=12, 
+                                         color="black"),
+              axis.text.x = element_text(size=12, 
+                                         color="black"),
+              axis.title.x = element_text(size=16, 
+                                          color="darkslategray",
+                                          face="bold"),
+              axis.title.y = element_text(size=16, 
+                                          color="darkslategray",
+                                          face="bold"))
     } else{
     ## if census region is selected
     ggplot(data = fe_reactive(), aes(x=fuel, y=btu, fill=sub_region))+
@@ -177,7 +199,17 @@ server <- function(input, output) {
       scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
       labs(x=input$pick_use, y="Fuel (Trillion Btu)", title=input$pick_place, fill="Sub Region") +
       ylim(0,600)+
-      theme_minimal()
+      theme_minimal() +
+        theme(axis.text.y = element_text(size=12, 
+                                         color="black"),
+              axis.text.x = element_text(size=12, 
+                                         color="black"),
+              axis.title.x = element_text(size=16, 
+                                          color="darkslategray",
+                                          face="bold"),
+              axis.title.y = element_text(size=16, 
+                                          color="darkslategray",
+                                          face="bold"))
 
     }
   }, bg="transparent"
@@ -191,18 +223,40 @@ server <- function(input, output) {
       ggplot(data = fe_reactive_tot(), aes(x=sub_region, y=sum, fill=sub_region))+
         geom_col()+
         scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
-        labs(x=input$pick_use, y="Fuel (Trillion Btu)", title="Total Btu Used by Each Subregion (Trillions") +
+        labs(x=input$pick_use, fill="Sub Region",y="Fuel (Trillion Btu)", title="Total Btu Used by Each Subregion (Trillions") +
         ylim(0,1000)+
-        theme_minimal()
+        theme_minimal() +
+        theme(axis.text.y = element_text(size=12, 
+                                         color="black"),
+              axis.text.x = element_text(size=12, 
+                                         color="black"),
+              axis.title.x = element_text(size=16, 
+                                          color="darkslategray",
+                                          face="bold"),
+              axis.title.y = element_text(size=16, 
+                                          color="darkslategray",
+                                          face="bold"))
     } 
     else{
       ##if "ALL" is selected
       ggplot(data = fe_reactive_tot(), aes(x=census_region, y=btu, fill=census_region))+
         geom_col()+
         scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
-        labs(x=input$pick_use, y="Fuel (Trillion Btu)", title="Total Btu Used by Each Region (Trillions)") +
+        labs(x=input$pick_use, fill= "Census Region",y="Fuel (Trillion Btu)", title="Total Btu Used by Each Region (Trillions)") +
         ylim(0,1000)+
-        theme_minimal()
+        theme_minimal()+
+        theme(axis.text.y = element_text(size=12, 
+                                          color="black"),
+              axis.text.x = element_text(size=12, 
+                                          color="black"),
+              axis.title.x = element_text(size=16, 
+                                         color="darkslategray",
+                                         face="bold"),
+              axis.title.y = element_text(size=16, 
+                                          color="darkslategray",
+                                          face="bold")
+              
+              ) 
     }
     }, bg="transparent"
     
@@ -218,13 +272,23 @@ server <- function(input, output) {
 
   
   output$pct_state <- renderPlot({
+    if(input$pick_mode=="TRUE") {
+      ggplot()+
+        geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_e))+
+        scale_fill_gradient(low="darkseagreen1", high="green4")+
+        labs(fill="Percent of Homes in State")+
+        labs(title = "Percent of Homes Fully Electrified")+
+        theme_void() 
+    } else(
     ggplot()+
-      geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_e))+
-      scale_fill_gradient(low="darkseagreen1", high="green4")+
-      labs(fill="Percent of Homes Fully Electrified")+
-      labs(title = "Percent of Homes Fully Electrified")+
+      geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_i))+
+      scale_fill_gradient(low="pink", high="darkred")+
+      labs(fill="Percent of Homes in State")+
+      labs(title = "Percent of Homes Using Natural Gas for Any Reason")+
       theme_void() 
+    )
   }, bg= "transparent"
+  
   )
   
   output$elec_summary <- renderText({
