@@ -13,6 +13,7 @@ my_theme <- bs_theme(
 
 source("wrangle_files/fuel_use_region.R")
 source("wrangle_files/map_wrangle.R")
+source("wrangle_files/dashboard_wrang.R")
 
 ui <- fluidPage(
   theme=my_theme,
@@ -26,23 +27,27 @@ ui <- fluidPage(
                                 
                       )
              ),
-             tabPanel("Dashboard: Total Residential Energy Consumption (1997-2020)",
+             tabPanel("Dashboard: Total Residential Energy Consumption by Fuel Type",
                       sidebarLayout(
-                        sidebarPanel("Choose End Use (or Total Energy Consumption)",
-                                     selectInput(inputId = "year",
-                                                 label = "Choose Consumption End Use:",
-                                                 choices = c("Total Consumption", "Space Heating", 
-                                                             "Air Conditioning", "Water Heating", 
-                                                             "Refrigeration", "Other Appliances and Lighting")),
-                                     radioButtons(inputId = "pick_region",
-                                                  label = "Choose Census Region:",
-                                                  choices = c("Entire U.S.", "Northeast", 
-                                                              "Midwest", "South", "West", "Four Most Populated Sates"))
+                        sidebarPanel(
+                          selectInput("en_all",
+                                      label= "",
+                                      choices = c("Overview","Electricity vs. Natural Gas")),
+                          
+                                     checkboxGroupInput(inputId = "fuel_dash",
+                                                  label = "Choose Fuel Types to Add to the Graph to Compare Over Time",
+                                                  choices = unique(top_4_tot$fuel)),
+                                  
+                                      radioButtons(inputId="hh_tot",
+                                                   label = "Choose Overall Use or Average Use by Households Using the Fuels",
+                                                   choices = list("Overall Energy Use" = 1,"Average by Household"= 2))
+                            
+              
                                      # end selectInput
                         ), # end sidebarPanel
                         
                         
-                        mainPanel("Here will go regions of the US filtered by Fuel Use")
+                        mainPanel(plotOutput("dash_plot"), plotOutput("ng_plot"))
                       )
              ), 
              tabPanel("Electricity Grid by End Use by Region",
@@ -80,7 +85,7 @@ ui <- fluidPage(
                                        label = NULL,
                                        value = TRUE,
                                        onLabel = "Fully Electric",
-                                       offLabel = "Some Natural Gas",
+                                       offLabel = "Uses Natural Gas (Any Use)",
                                        onStatus = NULL,
                                        offStatus = NULL,
                                        size = "default",
@@ -133,8 +138,55 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   
-  ## Tab 1: Overview
+  ## INPUTS TAB 1
   
+  dash_reactive <- reactive({
+    top_4_tot %>%
+      filter(fuel %in% input$fuel_dash)
+  })
+  
+  elec_ng_reactive <- reactive({
+    if(input$hh_tot == 1){
+      top_2
+    } else{
+      top_2 %>%
+        filter(year%in%1990:2015)
+    }
+    
+    
+    
+  })
+  
+  ##OUTPUTS TAB 1
+  output$dash_plot <- renderPlot( {
+    ggplot(data=dash_reactive(),(aes(x=year, y=MJ, group=fuel))) +
+             geom_line(size=2, aes(color=fuel)) +
+             geom_point(size=1,aes(color=fuel))+
+              labs(y="MJ", x="", title="Total U.S. Fuel Use by Type, 1997-2015", color="Fuel Type")+
+              scale_color_manual(values=c("black","darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
+             theme_minimal()
+  }, bg="transparent")
+  
+  output$ng_plot <- renderPlot({
+    if(input$hh_tot==1){
+    ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ, group=fuel))) +
+      geom_line(size=2, aes(color=fuel)) +
+      geom_point(size=1,aes(color=fuel))+
+      labs(y="MJ", x="", title="Total U.S. Fuel Use by Type, 1997-2015", color="Fuel Type")+
+      scale_color_manual(values=c( "seagreen3", "seagreen1"))+
+      theme_minimal()
+    }
+    else{
+      ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ_hh, group=fuel))) +
+        geom_line(size=2, aes(color=fuel)) +
+        geom_point(size=1,aes(color=fuel))+
+        labs(y="MJ", x="", title="Average (Billion) MJ Used per Household Using Fuel Type", color="Fuel Type")+
+        scale_color_manual(values=c( "seagreen3", "seagreen1"))+
+        theme_minimal()
+    }
+  }, bg="transparent")
+  
+
   
   
   ## Tab 3: Region + End Use + Fuel
@@ -221,7 +273,7 @@ server <- function(input, output) {
                                           face="bold"))
       
     }
-  }, bg="transparent"
+  }, bg="transparent", res=94
   )
   
   ##bottom graph (totals)
