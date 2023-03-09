@@ -80,7 +80,7 @@ ui <- fluidPage(
                                        label = NULL,
                                        value = TRUE,
                                        onLabel = "Fully Electric",
-                                       offLabel = "Natural Gas Stove",
+                                       offLabel = "Some Natural Gas",
                                        onStatus = NULL,
                                        offStatus = NULL,
                                        size = "default",
