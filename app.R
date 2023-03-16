@@ -124,21 +124,19 @@ ui <- fluidPage(
              
              tabPanel("Energy Insecurity",
                       sidebarLayout(
-                        sidebarPanel(
-                          checkboxGroupInput(inputId = "pick_appliance",
-                                             label = "Choose Appliance(s):",
-                                             choices = c("Space Heating", "Air Conditioning",
-                                                         "Water Heating", "Clothes Wasing",
-                                                         "Clothes Drying", "Lighting", "Refrigeration",
-                                                         "Cooking", "Dishwasher", "TVs", "Pool Pumps", 
-                                                         "Hot Tub Pumps and Heaters"
-                                             ))
-                        ), # end checkboxGroupInput
+                        sidebarPanel(strong("Energy Insecurity in the US (2020)")
+                      
+                                             ),
                         
-                        # end sidebarPanel
-                        
-                        
-                        mainPanel("Here will go the graphs of the relative uses of energy by each appliance for each census region!")
+                        mainPanel(
+                          tabsetPanel(
+                            tabPanel("Analysis"),
+                            tabPanel("Map",plotOutput("ins_map")),
+                            tabPanel("Breakdown")
+                            
+                            
+                          )
+                      )
                       )
                       
              )
@@ -159,7 +157,7 @@ server <- function(input, output) {
   ##OUTPUTS TAB 1
   library(RColorBrewer)
   
-  my_colors <- c("Electricity" = "darkgreen", "Natural Gas" = "blue", "Fuel Oil/Kerosene" = "purple", "LPG" = "darkorange", "Total" = "black")
+  my_colors <- c("Electricity" = "darkgreen", "Natural Gas" = "blue", "Fuel Oil/Kerosene" = "purple", "Propane" = "darkorange", "Total" = "black")
   
   
   output$dash_plot <- renderPlot( {
@@ -199,7 +197,7 @@ server <- function(input, output) {
       ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ_hh, group=fuel))) +
         geom_line(size=2, aes(color=fuel)) +
         geom_point(size=1,aes(color=fuel))+
-        labs(y="MJ", x="", title="Average (Billion) MJ Used per Household Using Fuel Type", color="Fuel Type")+
+        labs(y="MJ", x="", title="Average (Thousand) MJ Used per Household Using Fuel Type", color="Fuel Type")+
         scale_color_manual(values=c( "green1", "darkgreen"))+
         theme_minimal()
     }
@@ -366,7 +364,7 @@ server <- function(input, output) {
     } else(
       ggplot()+
         geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_i))+
-        scale_fill_gradient(low="lightblue", high="blue")+
+        scale_fill_gradient(low="lavender", high="darkmagenta")+
         labs(fill="Percent of Homes in State")+
         labs(title = "Percent of Homes Using Natural Gas for Any Reason")+
         theme_void() 
@@ -390,15 +388,18 @@ server <- function(input, output) {
   ### TAB 5
   
   ## INPUTS
+  pct_i_reactive <- reactive({
+    states_contig_sf 
+  })
   
   ## OUTPUTS
  
   output$ins_map <- renderPlot({
       ggplot()+
-        geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_e))+
-        scale_fill_gradient(low="darkseagreen1", high="green4")+
-        labs(fill="Percent of Homes in State")+
-        labs(title = "Percent of Homes Fully Electrified")+
+        geom_sf(data=pct_i_reactive(), size=0.2,color="black", aes(fill=pct_i))+
+        scale_fill_gradient(low="lavenderblush2", high="red")+
+        labs(fill="Percent of Homes Energy Insecure")+
+        labs(title = "Percent of Homes Energy Insecure")+
         theme_void()
   }, bg = "transparent"
   )
