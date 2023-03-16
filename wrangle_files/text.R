@@ -20,3 +20,11 @@ demographics data are collected from the households. The EIA combines this
 data with data from energy suppliers to the homes to get estimates for the 
 national use of energy overall, as well as for heating, cooling, appliance
 use, etc."
+
+dashboard <- "The RECS has data on energy consumption by fuel type dating back to 
+1979. Every survey year, there is a report of the total households as well as the total
+energy use in Btu used per fuel type. It is converted here to Megajoules (MJ). The graph shown here is a dashboard of the 
+total energy use by fuel type from 1979 to 2015 (the most recent published survey year --
+2020 data should be released in 2023). Click on the different fuel types to see
+how consumption trends have changed over time, and how the total consumption has 
+changed over time."

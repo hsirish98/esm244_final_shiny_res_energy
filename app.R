@@ -34,7 +34,7 @@ ui <- fluidPage(
                           ##start first tab
                           tabPanel(strong("Overview"), ##title
                                    tags$p(main_ov), tags$p(main_2p),
-                                   tags$p(data_source), tags$p("The data is found ", tags$a(href="https://www.eia.gov/consumption/residential/data/2020/", "here"))
+                                   tags$p(data_source), tags$p("The data is accessible ", tags$a(href="https://www.eia.gov/consumption/residential/data/2020/", "here"))
                                    ), ##end first tab
                           ##start second tab
                           tabPanel(strong("About the RECS"), ##title
@@ -64,7 +64,13 @@ ui <- fluidPage(
                                      checkboxGroupInput(inputId = "fuel_dash",
                                                   label = "Choose Fuel Types to Add to the Graph to Compare Over Time",
                                                   choices = c("Total", "Electricity", "Natural Gas", "Propane", "Fuel Oil/Kerosene"),
-                                                  selected="Total") ## initialize Total to be selected
+                                                  selected="Total"), ## initialize Total to be selected
+                                     tags$hr(),
+                                     dashboard,
+                                     p("***Wood also is used in residential buildings comparable
+                                       to lower used fuel types but it is excluded from this analysis
+                                       due to lack of consistency of data collection across survey
+                                       years.")
                             
               
                                      # end checkbox
@@ -87,12 +93,27 @@ ui <- fluidPage(
                                      ##total use versus per household
                                      selectInput("en_nat",
                                                  label= "",
-                                                 choices = c("Total Use"=1,"Per Household"=2))
+                                                 choices = c("Total Use"=1,"Per Household"=2)),
+                                     tabsetPanel(tabPanel("Total Use", 
+                                                          "Natural Gas and Electricity are the fuel types that are the most consumed
+                                                          by residential buildings in the United States. Switching appliances to electricity
+                                                          (on an increasingly lower fossil fuel grid) will help the U.S. move towards Net Zero
+                                                          goals. Historical trends show natural gas consumption decreasing with time while 
+                                                          electricity increases."),
+                                                 tabPanel("Per Household",
+                                                          "We also must investigate the fuel consumed by household (thousand MJ rather than billion MJ).
+                                                          Since natural gas is decreasing
+                                                          with time much more than electricity changes, we guess that at least some homes are switching
+                                                          from using natural gas to electricity with time. Note: Here, we are only looking at 1990
+                                                          to 2015 as that is when this data started being consistently reported in the RECS.")
+                                                 
+                                                 )
                                      
                       ), ## end sidebar
                       
                       ##start main panel
-                      mainPanel(plotOutput("ng_plot")
+                      mainPanel(plotOutput("ng_plot"),
+                                
                                 ) ##end main panel
                       ) ##end panel layout
              ), ##end tab
@@ -103,7 +124,18 @@ ui <- fluidPage(
                       ##start panel layout
                       sidebarLayout(
                         ##start sidebar
-                        sidebarPanel("Different Regions of the U.S. use Different Combinations of Fuel Types.", ##title
+                        sidebarPanel(
+                          tabsetPanel(
+                            tabPanel("Fuel Use By Region",
+                                     "Some appliances will be easier to electrify than others. Use the 'interactive' tab
+                                     to toggle by region and by end use to see how different uses and regions are powered and 
+                                     which end uses are the most energy intensive. 
+                                     'Other' includes lighting, clothes washers, other appliances, etc. Again, wood is excluded
+                                     as it was not totaled by the survey similar to the other fuel types. Data is from 2015 as 
+                                     2020 data has not yet been published."
+                                     ),
+                            tabPanel("Interactive", 
+                                     "Different Regions of the U.S. use Different Combinations of Fuel Types.", ##title
                                      ## radio buttons to click "all" vs specific census region
                                      radioButtons(inputId = "pick_place",
                                                   label = "Choose Region:",
@@ -116,6 +148,8 @@ ui <- fluidPage(
                                                   choices = unique(fuel_use$end_use)
                                                   ) ##end radio button 2
                                      # end radioButtons overall
+                               ),
+                          )
                         ), # end sidebar
                         
                         ## start main panel
@@ -135,18 +169,20 @@ ui <- fluidPage(
                       ##start panel layout
                       sidebarLayout(
                         ##start sidebar
-                        sidebarPanel(strong("Some States are Fully Electrified"), ##title
+                        sidebarPanel(strong("Some Homes are Fully Electrified"), ##title
                                      ##toggle explanation text
-                                     "But many use natural gas",
+                                     p("But many use natural gas"),
+                                     tags$hr(),
+                                     p("Here we can actually look at the percentage of homes in each 
+                                     state that are currently electrified as of 2020. Darker green indicates more homes
+                                     have been fully electrified (use electricity only for any end use. However, toggle the switch 
+                                     to see the percentage of homes that use at least some natural gas, for any end use."),
+                                     p("Gray values indicate that there was no data reported for that state.")
                                     
                         ), ## end sidebar
                         
                         ##start main panel
                         mainPanel(
-                          tabsetPanel(
-                            tabPanel("Analysis",textOutput("elec_summary")), ##explanation tab
-                            ##next tab(map)
-                            tabPanel("Map", ##title
                               ##start switch input
                               switchInput(
                               inputId = "pick_mode",
@@ -163,9 +199,10 @@ ui <- fluidPage(
                               inline = FALSE,
                               width = NULL
                             ), ##end switch input
-                            plotOutput("pct_state")) ##map tab
-                          ) ## end tab segmenting
-                        ) ##end main panel
+                            plotOutput("pct_state")
+                            ) ##end main panel
+                       
+                        
                       ) ##end panel layout
              ), ##end tab
              
@@ -238,16 +275,16 @@ server <- function(input, output) {
     ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ, group=fuel))) +
       geom_line(size=2, aes(color=fuel)) +
       geom_point(size=1,aes(color=fuel))+
-      labs(y="MJ", x="", title="Total U.S. Fuel Use by Type, 1997-2015", color="Fuel Type")+
-      scale_color_manual(values=c( "green1", "darkgreen"))+
+      labs(y="Billion MJ", x="", title="Total U.S. Fuel Use by Type, 1997-2015", color="Fuel Type")+
+      scale_color_manual(values=c( "olivedrab", "darkgreen"))+
       theme_minimal()
     }
     else{ ##otherwise plot the by household number
       ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ_hh, group=fuel))) +
         geom_line(size=2, aes(color=fuel)) +
         geom_point(size=1,aes(color=fuel))+
-        labs(y="MJ", x="", title="Average (Thousand) MJ Used per Household Using Fuel Type", color="Fuel Type")+
-        scale_color_manual(values=c( "green1", "darkgreen"))+
+        labs(y="Thousand MJ", x="", title="Average (Thousand) MJ Used per Household Using That Fuel Type", color="Fuel Type")+
+        scale_color_manual(values=c( "olivedrab", "darkgreen"))+
         theme_minimal()
     }
   }, bg="transparent")
