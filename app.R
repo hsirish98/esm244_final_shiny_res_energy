@@ -14,42 +14,53 @@ my_theme <- bs_theme(
 source("wrangle_files/fuel_use_region.R")
 source("wrangle_files/map_wrangle.R")
 source("wrangle_files/dashboard_wrang.R")
+source("wrangle_files/text.R")
 
 ui <- fluidPage(
   theme=my_theme,
-  navbarPage("Energy Modeling",
-             tabPanel("Overview",
-                      mainPanel(strong(p("Welcome to my shiny app!")),
-                                p("The purpose of this shiny app is to take a look at current
-                                      trends in residential/personal energy consumption, and 
-                                      get a feel for the task it will take to electrify the residential
-                                      sector")
-                                
+  navbarPage("Electrifying Residential Energy",
+             tabPanel("Getting Started",
+                      mainPanel(
+                        tabsetPanel(
+                          tabPanel(strong("Overview"), tags$br(), main_ov, tags$br(), tags$br(),
+                                   main_2p, tags$br(), tags$br(), data_source, tags$br(), tags$br(),
+                                   "The data is found here: "),
+                          tabPanel(strong("About the RECS"))
+                      )
                       )
              ),
              tabPanel("Dashboard: Total Residential Energy Consumption by Fuel Type",
                       sidebarLayout(
                         sidebarPanel(
-                          selectInput("en_all",
-                                      label= "",
-                                      choices = c("Overview","Electricity vs. Natural Gas")),
+                
                           
                                      checkboxGroupInput(inputId = "fuel_dash",
                                                   label = "Choose Fuel Types to Add to the Graph to Compare Over Time",
-                                                  choices = unique(top_4_tot$fuel)),
-                                  
-                                      radioButtons(inputId="hh_tot",
-                                                   label = "Choose Overall Use or Average Use by Households Using the Fuels",
-                                                   choices = list("Overall Energy Use" = 1,"Average by Household"= 2))
+                                              
+                                                  choices = c("Total", "Electricity", "Natural Gas", "LPG", "Fuel Oil/Kerosene"),
+                                                  selected="Total")
                             
               
                                      # end selectInput
                         ), # end sidebarPanel
                         
                         
-                        mainPanel(plotOutput("dash_plot"), plotOutput("ng_plot"))
+                        mainPanel(plotOutput("dash_plot"))
                       )
              ), 
+             
+             tabPanel("Electricty vs. Natural Gas Historically",
+                      sidebarLayout(
+                        sidebarPanel("Total Energy Use vs. Use per Household",
+                                     selectInput("en_nat",
+                                                 label= "",
+                                                 choices = c("Total Use"=1,"Per Household"=2))
+                                     
+                      ),
+                      mainPanel(plotOutput("ng_plot"))
+                      )
+             ),
+                      
              tabPanel("Electricity Grid by End Use by Region",
                       sidebarLayout(
                         sidebarPanel("Different Regions of the U.S. use Different Combinations of Fuel Types.",
@@ -144,36 +155,44 @@ server <- function(input, output) {
     top_4_tot %>%
       filter(fuel %in% input$fuel_dash)
   })
+
+  ##OUTPUTS TAB 1
+  library(RColorBrewer)
+  
+  my_colors <- c("Electricity" = "darkgreen", "Natural Gas" = "blue", "Fuel Oil/Kerosene" = "purple", "LPG" = "darkorange", "Total" = "black")
+  
+  
+  output$dash_plot <- renderPlot( {
+    ggplot(data=dash_reactive(),(aes(x=as.factor(year), y=MJ, group=fuel, color=fuel))) +
+             geom_line(size=2, aes(color=fuel)) +
+             geom_point(size=1,aes(color=fuel))+
+              ylim(0,12000) +
+              labs(y="Billion MJ", x="", title="Total U.S. Fuel Use by Type, 1997-2015", color="Fuel Type")+
+              scale_color_manual(values=my_colors)+
+             theme_minimal()
+  }, bg="transparent")
+  
+  ##INPUTS TAB 2
   
   elec_ng_reactive <- reactive({
-    if(input$hh_tot == 1){
+    if(input$en_nat == 1){
       top_2
     } else{
       top_2 %>%
         filter(year%in%1990:2015)
     }
     
-    
-    
   })
   
-  ##OUTPUTS TAB 1
-  output$dash_plot <- renderPlot( {
-    ggplot(data=dash_reactive(),(aes(x=year, y=MJ, group=fuel))) +
-             geom_line(size=2, aes(color=fuel)) +
-             geom_point(size=1,aes(color=fuel))+
-              labs(y="MJ", x="", title="Total U.S. Fuel Use by Type, 1997-2015", color="Fuel Type")+
-              scale_color_manual(values=c("black","darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
-             theme_minimal()
-  }, bg="transparent")
+  ##OUTPUTS TAB 2
   
   output$ng_plot <- renderPlot({
-    if(input$hh_tot==1){
+    if(input$en_nat==1){
     ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ, group=fuel))) +
       geom_line(size=2, aes(color=fuel)) +
       geom_point(size=1,aes(color=fuel))+
       labs(y="MJ", x="", title="Total U.S. Fuel Use by Type, 1997-2015", color="Fuel Type")+
-      scale_color_manual(values=c( "seagreen3", "seagreen1"))+
+      scale_color_manual(values=c( "green1", "darkgreen"))+
       theme_minimal()
     }
     else{
@@ -181,7 +200,7 @@ server <- function(input, output) {
         geom_line(size=2, aes(color=fuel)) +
         geom_point(size=1,aes(color=fuel))+
         labs(y="MJ", x="", title="Average (Billion) MJ Used per Household Using Fuel Type", color="Fuel Type")+
-        scale_color_manual(values=c( "seagreen3", "seagreen1"))+
+        scale_color_manual(values=c( "green1", "darkgreen"))+
         theme_minimal()
     }
   }, bg="transparent")
@@ -190,7 +209,10 @@ server <- function(input, output) {
   
   
   ## Tab 3: Region + End Use + Fuel
-  ## Taking Inputs
+  
+  ## INPUTS
+  
+  ## end use graph inputs
   fe_reactive <- reactive({
     ## if "ALL" is selected
     if(input$pick_place=="All"){
@@ -211,7 +233,7 @@ server <- function(input, output) {
   })
   
   
-  ##input for bottom graph
+  ## totaling graph inputs
   fe_reactive_tot <- reactive({
     ## if "ALL is selected"
     if(input$pick_place=="All"){
@@ -231,7 +253,7 @@ server <- function(input, output) {
   
   ## plots for Output
   
-  ##top graph (by region)
+  ##left graph (by region)
   output$fe_plot <- renderPlot( {
     ##if "ALL" is selected
     if(input$pick_place=="All"){
@@ -239,8 +261,8 @@ server <- function(input, output) {
         geom_col(position="dodge")+
         scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
         labs(x=input$pick_use, y="Fuel (Million MJ)", title=input$pick_place, fill="Census Region") +
-        ylim(0,15000)+
-        geom_text(aes(label=MJ),position = position_dodge(width = 1))+
+        ylim(0,1000)+
+        #geom_text(aes(label=MJ),position = position_dodge(width = 1))+
         theme_minimal() +
         theme(axis.text.y = element_text(size=12, 
                                          color="black"),
@@ -258,8 +280,8 @@ server <- function(input, output) {
         geom_col(position="dodge")+
         scale_fill_manual(values=c("darkslategray", "darkslategray4", "darkslategray3", "slategray"))+
         labs(x=input$pick_use, y="Fuel (Million MJ)", title=input$pick_place, fill="Sub Region") +
-        ylim(0,10000)+
-        geom_text(aes(label=MJ),position = position_dodge(width = 1))+
+        ylim(0,1000)+
+        #geom_text(aes(label=MJ),position = position_dodge(width = 1))+
         theme_minimal() +
         theme(axis.text.y = element_text(size=12, 
                                          color="black"),
@@ -273,10 +295,10 @@ server <- function(input, output) {
                                           face="bold"))
       
     }
-  }, bg="transparent", res=94
+  }, bg="transparent"
   )
   
-  ##bottom graph (totals)
+  ##right graph (totals)
   output$fe_totals <- renderPlot( 
     {
       ##if census region is selected
@@ -285,8 +307,8 @@ server <- function(input, output) {
           geom_col()+
           scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
           labs(x=input$pick_use, fill="Sub Region",y="Fuel (Million MJ)", title="Total Billion MJ of Each Fuel Used") +
-          ylim(0,15000)+
-          geom_text(aes(label=MJ))+
+          ylim(0,1500)+
+          geom_text(aes(label=MJ), vjust=-1)+
           theme_minimal() +
           theme(axis.text.y = element_text(size=12, 
                                            color="black"),
@@ -305,8 +327,8 @@ server <- function(input, output) {
           geom_col()+
           scale_fill_manual(values=c("darkgreen", "seagreen3", "seagreen1", "darkseagreen2"))+
           labs(x=input$pick_use, fill= "Census Region",y="Fuel (Million MJ)", title="Total Billion MJ Used by Each Region (All Fuel Types)") +
-          ylim(0,20000)+
-          geom_text(aes(label=MJ))+
+          ylim(0,2000)+
+          geom_text(aes(label=MJ, vjust=-1))+
           theme_minimal()+
           theme(axis.text.y = element_text(size=12, 
                                            color="black"),
@@ -326,11 +348,10 @@ server <- function(input, output) {
   )
   
   
+  ###TAB 4: ELECTRIFICATION MAP 
+  
   pct_e_reactive <- reactive({
-    
-    
     states_contig_sf 
-    
   })
   
   
@@ -345,7 +366,7 @@ server <- function(input, output) {
     } else(
       ggplot()+
         geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_i))+
-        scale_fill_gradient(low="pink", high="darkred")+
+        scale_fill_gradient(low="lightblue", high="blue")+
         labs(fill="Percent of Homes in State")+
         labs(title = "Percent of Homes Using Natural Gas for Any Reason")+
         theme_void() 
@@ -366,7 +387,22 @@ server <- function(input, output) {
   })
   
   
+  ### TAB 5
   
+  ## INPUTS
+  
+  ## OUTPUTS
+ 
+  output$ins_map <- renderPlot({
+      ggplot()+
+        geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_e))+
+        scale_fill_gradient(low="darkseagreen1", high="green4")+
+        labs(fill="Percent of Homes in State")+
+        labs(title = "Percent of Homes Fully Electrified")+
+        theme_void()
+  }, bg = "transparent"
+  )
+   
 }
 
 shinyApp(ui = ui, server = server)
