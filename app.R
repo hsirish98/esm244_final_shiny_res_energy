@@ -135,33 +135,35 @@ ui <- fluidPage(
                       ##start panel layout
                       sidebarLayout(
                         ##start sidebar
-                        sidebarPanel(strong("Choose the Housing Characteristic:"), ##title
+                        sidebarPanel(strong("Some States are Fully Electrified"), ##title
                                      ##toggle explanation text
-                                     "Toggle on the 'Map' tab to see the homes that are fully electrified vs. those that use 
-                                     natural gas for any reason",
-                                     ##switch input
-                                     switchInput(
-                                       inputId = "pick_mode",
-                                       label = NULL,
-                                       value = TRUE,
-                                       onLabel = "Fully Electric",
-                                       offLabel = "Uses Natural Gas (Any Use)",
-                                       onStatus = NULL,
-                                       offStatus = NULL,
-                                       size = "default",
-                                       labelWidth = "auto",
-                                       handleWidth = "auto",
-                                       disabled = FALSE,
-                                       inline = FALSE,
-                                       width = NULL
-                                     ) ##end switch input
+                                     "But many use natural gas",
+                                    
                         ), ## end sidebar
                         
                         ##start main panel
                         mainPanel(
                           tabsetPanel(
                             tabPanel("Analysis",textOutput("elec_summary")), ##explanation tab
-                            tabPanel("Map",plotOutput("pct_state")) ##map tab
+                            ##next tab(map)
+                            tabPanel("Map", ##title
+                              ##start switch input
+                              switchInput(
+                              inputId = "pick_mode",
+                              label = NULL,
+                              value = TRUE,
+                              onLabel = "Fully Electric",
+                              offLabel = "Uses Natural Gas (Any Use)",
+                              onStatus = NULL,
+                              offStatus = NULL,
+                              size = "default",
+                              labelWidth = "auto",
+                              handleWidth = "auto",
+                              disabled = FALSE,
+                              inline = FALSE,
+                              width = NULL
+                            ), ##end switch input
+                            plotOutput("pct_state")) ##map tab
                           ) ## end tab segmenting
                         ) ##end main panel
                       ) ##end panel layout
