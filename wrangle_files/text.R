@@ -11,3 +11,12 @@ of total electrification"
 data_source <- "The data comes from the United States Energy Information Administration (EIA).
 This organization publishes a Residential Energy Consumption Survey every year. Click on the 'About the
 RECS' tab to see more information about this data."
+
+
+RECS <- "The Residential Energy Consumption Survery (RECS)
+is administered by the EIA to what they call a 'nationally representative
+sample of housing units.' Energy usage and housing characteristics and 
+demographics data are collected from the households. The EIA combines this 
+data with data from energy suppliers to the homes to get estimates for the 
+national use of energy overall, as well as for heating, cooling, appliance
+use, etc."

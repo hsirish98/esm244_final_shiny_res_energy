@@ -18,79 +18,128 @@ source("wrangle_files/text.R")
 
 ui <- fluidPage(
   theme=my_theme,
-  navbarPage("Electrifying Residential Energy",
+  navbarPage("Electrifying Residential Energy", ##title
+             ## Tab 1
+             ## start of tab
              tabPanel("Getting Started",
+                     ##start of layout
+                       sidebarLayout(
+                        ##start of sidebar
+                        sidebarPanel("A Shiny App created by Hannah Irish
+                                     for ESM 244 Winter 2023"), ##end of sidebar
+                       ##start of main panel             
                       mainPanel(
+                        ##main panel start tab format:
                         tabsetPanel(
-                          tabPanel(strong("Overview"), tags$br(), main_ov, tags$br(), tags$br(),
-                                   main_2p, tags$br(), tags$br(), data_source, tags$br(), tags$br(),
-                                   "The data is found here: "),
-                          tabPanel(strong("About the RECS"))
-                      )
-                      )
-             ),
-             tabPanel("Dashboard: Total Residential Energy Consumption by Fuel Type",
+                          ##start first tab
+                          tabPanel(strong("Overview"), ##title
+                                   tags$p(main_ov), tags$p(main_2p),
+                                   tags$p(data_source), tags$p("The data is found ", tags$a(href="https://www.eia.gov/consumption/residential/data/2020/", "here"))
+                                   ), ##end first tab
+                          ##start second tab
+                          tabPanel(strong("About the RECS"), ##title
+                                   p(RECS),
+                                   p("See more information", tags$a(href="https://www.eia.gov/consumption/residential/about.php", "here"))
+                                   ), ##end second tab
+                          ##start third tab
+                          tabPanel(strong("Acknowledgements"), ##title
+                                   strong("Data Source:"), p("U.S. Energy Information Administration. (2023). Residential Energy Consumption Survey
+                                      (1979-2020). EIA. https://www.eia.gov/consumption/residential/data/2020/"),
+                                   p("Thank you to Casey O'Hara and Nathan Grimes for instruction and assistance"),
+                                   p("Thank you to Dr. Eric Masanet for consultation and for the idea to use this data")
+                                   ) ##end third tab
+                             ) ##end main panel tabs
+                           ) ## end main panel
+                      ) ## end panel layout
+             ), ## end tab 1
+             
+             ##start tab 2
+             tabPanel("Dashboard: Total Residential Energy Consumption by Fuel Type", ##title
+                      ##start panel layout
                       sidebarLayout(
+                        ##start sidebar
                         sidebarPanel(
                 
-                          
+                          ##checkbox inputs for the type of fuel to compare on the dashboard graph
                                      checkboxGroupInput(inputId = "fuel_dash",
                                                   label = "Choose Fuel Types to Add to the Graph to Compare Over Time",
-                                              
-                                                  choices = c("Total", "Electricity", "Natural Gas", "LPG", "Fuel Oil/Kerosene"),
-                                                  selected="Total")
+                                                  choices = c("Total", "Electricity", "Natural Gas", "Propane", "Fuel Oil/Kerosene"),
+                                                  selected="Total") ## initialize Total to be selected
                             
               
-                                     # end selectInput
-                        ), # end sidebarPanel
+                                     # end checkbox
+                        ), # end sidebar
+                       
                         
-                        
-                        mainPanel(plotOutput("dash_plot"))
-                      )
-             ), 
+                        ##main Panel 
+                        mainPanel(plotOutput("dash_plot")
+                                  ) ##end main panel
+                      ) ## end panel layout
+             ), ## end tab
              
-             tabPanel("Electricty vs. Natural Gas Historically",
-                      sidebarLayout(
+             ##start tab 3
+             tabPanel("Electricty vs. Natural Gas Historically", ##title
+                     ## start panel layout
+                       sidebarLayout(
+                         ##start sidebar
                         sidebarPanel("Total Energy Use vs. Use per Household",
+                                     ##select input for the energy vs natural gas graph
+                                     ##total use versus per household
                                      selectInput("en_nat",
                                                  label= "",
                                                  choices = c("Total Use"=1,"Per Household"=2))
                                      
-                      ),
-                      mainPanel(plotOutput("ng_plot"))
-                      )
-             ),
+                      ), ## end sidebar
                       
-             tabPanel("Electricity Grid by End Use by Region",
+                      ##start main panel
+                      mainPanel(plotOutput("ng_plot")
+                                ) ##end main panel
+                      ) ##end panel layout
+             ), ##end tab
+                      
+             
+             ##Start tab 4
+             tabPanel("Electricity Grid by End Use by Region", ##title
+                      ##start panel layout
                       sidebarLayout(
-                        sidebarPanel("Different Regions of the U.S. use Different Combinations of Fuel Types.",
+                        ##start sidebar
+                        sidebarPanel("Different Regions of the U.S. use Different Combinations of Fuel Types.", ##title
+                                     ## radio buttons to click "all" vs specific census region
                                      radioButtons(inputId = "pick_place",
                                                   label = "Choose Region:",
                                                   choices = c("All",unique(fuel_use_tidy$census_region)),
-                                     ) , "This Varies by End Use",
+                                     ) , ## end radio button 1
+                                     "This Varies by End Use", ## second title
+                                     ## radio buttons to click the end use
                                      radioButtons(inputId = "pick_use",
                                                   label = "Choose End Use:",
-                                                  choices = unique(fuel_use$end_use))
-                                     # end radioButtons
-                        ), # end sidebarPanel
+                                                  choices = unique(fuel_use$end_use)
+                                                  ) ##end radio button 2
+                                     # end radioButtons overall
+                        ), # end sidebar
                         
-                        
+                        ## start main panel
                         mainPanel(
+                          ##separate into tabs on main panel
                           tabsetPanel(
-                            tabPanel("Overview", plotOutput("fe_plot")),
-                            tabPanel("Total by Region",plotOutput("fe_totals"))
-                          )
-                          
-                        )
-                        
-                      )
-                      
-             ),
+                            tabPanel("Overview", plotOutput("fe_plot")), ##panel that has graph by region/subregion
+                            tabPanel("Total by Region",plotOutput("fe_totals")) ##panel that has totaled graph
+                                      ) ## end tab segmenting
+                              ) ## end main panel
+                          ) ##end panel layout
+             ), ##end tab
              
-             tabPanel("Electrification of the States",
+             
+            ##start tab 5
+             tabPanel("Electrification of the States", ##title
+                      ##start panel layout
                       sidebarLayout(
-                        sidebarPanel("Choose the Housing Characteristic:",
-                                     
+                        ##start sidebar
+                        sidebarPanel(strong("Choose the Housing Characteristic:"), ##title
+                                     ##toggle explanation text
+                                     "Toggle on the 'Map' tab to see the homes that are fully electrified vs. those that use 
+                                     natural gas for any reason",
+                                     ##switch input
                                      switchInput(
                                        inputId = "pick_mode",
                                        label = NULL,
@@ -105,61 +154,58 @@ ui <- fluidPage(
                                        disabled = FALSE,
                                        inline = FALSE,
                                        width = NULL
-                                     )
-                                     
-                        ),
+                                     ) ##end switch input
+                        ), ## end sidebar
                         
-                        
+                        ##start main panel
                         mainPanel(
                           tabsetPanel(
-                            tabPanel("Analysis",textOutput("elec_summary")),
-                            tabPanel("Map",plotOutput("pct_state"))
-                            
-                            
-                          )
-                        )
-                      )
-                      
-             ),
+                            tabPanel("Analysis",textOutput("elec_summary")), ##explanation tab
+                            tabPanel("Map",plotOutput("pct_state")) ##map tab
+                          ) ## end tab segmenting
+                        ) ##end main panel
+                      ) ##end panel layout
+             ), ##end tab
              
-             tabPanel("Energy Insecurity",
+            ## Tab 6
+             tabPanel("Energy Insecurity", ##title
+                      ## start panel layout
                       sidebarLayout(
+                        ## start sidebar
                         sidebarPanel(strong("Energy Insecurity in the US (2020)")
-                      
-                                             ),
-                        
+                                     ), ##end sidebar
+                        ##start main panel
                         mainPanel(
-                          tabsetPanel(
-                            tabPanel("Analysis"),
-                            tabPanel("Map",plotOutput("ins_map")),
-                            tabPanel("Breakdown")
-                            
-                            
-                          )
-                      )
-                      )
+                          ##start main panel segmentation
+                          tabsetPanel( 
+                            tabPanel("Analysis"), ##explanation tab
+                            tabPanel("Map",plotOutput("ins_map")), ##tab with map of insecurity
+                            tabPanel("Breakdown") ##tab of more specific data collection
+                          ) ##end panel segmentation
+                        ) ##end main panel
+                      ) ##end panel layout
                       
-             )
-  )
-)
+             ) ##end tab 6
+  ) ## end Navbar
+)##end UI
 
-##end UI
 
+## start server
 server <- function(input, output) {
   
   ## INPUTS TAB 1
-  
-  dash_reactive <- reactive({
-    top_4_tot %>%
-      filter(fuel %in% input$fuel_dash)
+  dash_reactive <- reactive({ 
+    top_4_tot %>% ## 4 fuel types + the total 
+      filter(fuel %in% input$fuel_dash) ##add fuels from checkbox input
   })
 
   ##OUTPUTS TAB 1
   library(RColorBrewer)
   
-  my_colors <- c("Electricity" = "darkgreen", "Natural Gas" = "blue", "Fuel Oil/Kerosene" = "purple", "Propane" = "darkorange", "Total" = "black")
+  ##set color by fuel type
+  my_colors <- c("Electricity" = "darkgreen", "Natural Gas" = "purple", "Fuel Oil/Kerosene" = "blue", "Propane" = "darkorange", "Total" = "black")
   
-  
+  ## create dashboard output
   output$dash_plot <- renderPlot( {
     ggplot(data=dash_reactive(),(aes(x=as.factor(year), y=MJ, group=fuel, color=fuel))) +
              geom_line(size=2, aes(color=fuel)) +
@@ -170,20 +216,21 @@ server <- function(input, output) {
              theme_minimal()
   }, bg="transparent")
   
+  
   ##INPUTS TAB 2
   
   elec_ng_reactive <- reactive({
-    if(input$en_nat == 1){
+    if(input$en_nat == 1){ ##if total is selected, choose the full df that has elec vs natural gas options
       top_2
     } else{
-      top_2 %>%
+      top_2 %>% ##otherwise choose by household use (only available starting 1990)
         filter(year%in%1990:2015)
     }
-    
   })
   
   ##OUTPUTS TAB 2
   
+  ##if the total is selected, plot top2
   output$ng_plot <- renderPlot({
     if(input$en_nat==1){
     ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ, group=fuel))) +
@@ -193,7 +240,7 @@ server <- function(input, output) {
       scale_color_manual(values=c( "green1", "darkgreen"))+
       theme_minimal()
     }
-    else{
+    else{ ##otherwise plot the by household number
       ggplot(data=elec_ng_reactive(),(aes(x=year, y=MJ_hh, group=fuel))) +
         geom_line(size=2, aes(color=fuel)) +
         geom_point(size=1,aes(color=fuel))+
@@ -204,8 +251,6 @@ server <- function(input, output) {
   }, bg="transparent")
   
 
-  
-  
   ## Tab 3: Region + End Use + Fuel
   
   ## INPUTS
@@ -249,7 +294,7 @@ server <- function(input, output) {
     }
   })
   
-  ## plots for Output
+  ## tab3 Output
   
   ##left graph (by region)
   output$fe_plot <- renderPlot( {
@@ -348,11 +393,12 @@ server <- function(input, output) {
   
   ###TAB 4: ELECTRIFICATION MAP 
   
+  ##make the reactive the sf
   pct_e_reactive <- reactive({
     states_contig_sf 
   })
   
-  
+  ##if electricity:
   output$pct_state <- renderPlot({
     if(input$pick_mode=="TRUE") {
       ggplot()+
@@ -361,7 +407,7 @@ server <- function(input, output) {
         labs(fill="Percent of Homes in State")+
         labs(title = "Percent of Homes Fully Electrified")+
         theme_void() 
-    } else(
+    } else( ##if natural gas:
       ggplot()+
         geom_sf(data=pct_e_reactive(), size=0.2,color="black", aes(fill=pct_i))+
         scale_fill_gradient(low="lavender", high="darkmagenta")+
@@ -373,27 +419,24 @@ server <- function(input, output) {
   
   )
   
+  
   output$elec_summary <- renderText({
-    "In order to reach nationwide carbon neutrality goals, 
-    we will have to electrify energy services wherever possible. 
-    The map which shows (by 2020) the percent of each states' homes that are 
-    totally electrified shows that we have a lot of progress to make 
-    to reach this goal. As can be seen from  the tab before about different 
-    regions on different fuel mixes, we currently have a legacy of relying on
-    gas and other fuels to provide much needed services like space heating.
-    77% is the max percent of homes electrified in any given state, in Colorado."
+    "Make this in the main panel instead!"
   })
   
   
   ### TAB 5
   
   ## INPUTS
+  
+  ##select the sf
   pct_i_reactive <- reactive({
     states_contig_sf 
   })
   
   ## OUTPUTS
  
+  ##show map of energy insecurity
   output$ins_map <- renderPlot({
       ggplot()+
         geom_sf(data=pct_i_reactive(), size=0.2,color="black", aes(fill=pct_i))+
@@ -404,8 +447,9 @@ server <- function(input, output) {
   }, bg = "transparent"
   )
    
-}
+} ## end ui
 
+##create app
 shinyApp(ui = ui, server = server)
 
 
