@@ -46,7 +46,7 @@ ui <- fluidPage(
                                    strong("Data Source:"), p("U.S. Energy Information Administration. (2023). Residential Energy Consumption Survey
                                       (1979-2020). EIA. https://www.eia.gov/consumption/residential/data/2020/"),
                                    p("Thank you to Casey O'Hara and Nathan Grimes for instruction and assistance"),
-                                   p("Thank you to Dr. Eric Masanet for consultation and for the idea to use this data")
+                                   p("Thank you to Eric Masanet for consultation and for the idea to use this data")
                                    ) ##end third tab
                              ) ##end main panel tabs
                            ) ## end main panel
@@ -211,20 +211,48 @@ ui <- fluidPage(
                       ## start panel layout
                       sidebarLayout(
                         ## start sidebar
-                        sidebarPanel(strong("Energy Insecurity in the US (2020)")
+                        sidebarPanel(strong("Energy Insecurity in the US (2020)"),
+                                     "As we electrify the grid and U.S. households, we must remember
+                                     that as climate change worsens, so does residential energy insecurity.
+                                     The map on this page shows the percent of homes in each state reporting
+                                     any energy insecurity.",
+                                     p("The 'breakdown' tab will show the percent of homes using each fuel
+                                     type as their main fuel type that report each indicator of energy
+                                     insecurity. We saw that space heating is the main source of energy
+                                     consumption in U.S. households, and the energy insecurity section of 
+                                     the survey shows that homes using mainly electricity for heating are 
+                                     reporting a higher percentage of homes energy insecure."),
+                                     p("This does not necessarily mean electricity is less reliable, but
+                                       as we move forward with any low carbon, climate change solution, 
+                                       we must always consider who will face the highest impacts from 
+                                       both climate change as well as policy changes to fight it.")
+                                     
+                        
                                      ), ##end sidebar
                         ##start main panel
                         mainPanel(
                           ##start main panel segmentation
                           tabsetPanel( 
-                            tabPanel("Analysis"), ##explanation tab
                             tabPanel("Map",plotOutput("ins_map")), ##tab with map of insecurity
-                            tabPanel("Breakdown") ##tab of more specific data collection
+                            tabPanel("Breakdown",
+                                     selectInput("ins_ind",
+                                                 label= "Choose an Energy Insecurity Indicator:",
+                                                 choices = c("Any Insecurity" = "any_ins",
+                                                             "Reducing Food or Medicine due to Energy Costs" = "reduce_food_med",
+                                                             "Leaving Home at Unhealthy Temperature" = "unhealthy_temp",
+                                                            "Receiving Disconnect/Stop Delivery Notice" ="disconnect",
+                                                            "Unable to use Heating Equipment" = "unable_heat"
+                                                             )
+                                                 ),
+                                     plotOutput("insecure")
+                                     ) ##tab of more specific data collection
                           ) ##end panel segmentation
                         ) ##end main panel
                       ) ##end panel layout
                       
              ) ##end tab 6
+            
+            
   ) ## end Navbar
 )##end UI
 
@@ -484,6 +512,22 @@ server <- function(input, output) {
         labs(title = "Percent of Homes Energy Insecure")+
         theme_void()
   }, bg = "transparent"
+  )
+  
+  ###INSECURITY TAB
+  
+  insecurity_reactive <- reactive({
+    ins_tidy %>% filter(indicator == input$ins_ind)
+  })
+  
+  output$insecure <- renderPlot({
+    ggplot(data=insecurity_reactive(), aes(x= fct_reorder(fuel, percent, desc), y=percent, fill=percent))+
+             geom_col(aes(fill=percent))+
+             scale_fill_gradient(high="red", low="lavender")+
+              labs(x="Main Heating Fuel", y="Percent of Homes Reporting Insecurity", 
+                   )+
+             theme_minimal()
+  },  bg = "transparent"
   )
    
 } ## end ui
