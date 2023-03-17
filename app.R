@@ -26,7 +26,9 @@ ui <- fluidPage(
                        sidebarLayout(
                         ##start of sidebar
                         sidebarPanel("A Shiny App created by Hannah Irish
-                                     for ESM 244 Winter 2023"), ##end of sidebar
+                                     for ESM 244 Winter 2023", tags$hr(), 
+                                     p("The tabs are meant to be explored in order
+                                       upon first visit to the app.")), ##end of sidebar
                        ##start of main panel             
                       mainPanel(
                         ##main panel start tab format:
@@ -119,49 +121,7 @@ ui <- fluidPage(
              ), ##end tab
                       
              
-             ##Start tab 4
-             tabPanel("Electricity Grid by End Use by Region", ##title
-                      ##start panel layout
-                      sidebarLayout(
-                        ##start sidebar
-                        sidebarPanel(
-                          tabsetPanel(
-                            tabPanel("Fuel Use By Region",
-                                     "Some appliances will be easier to electrify than others. Use the 'interactive' tab
-                                     to toggle by region and by end use to see how different uses and regions are powered and 
-                                     which end uses are the most energy intensive. 
-                                     'Other' includes lighting, clothes washers, other appliances, etc. Again, wood is excluded
-                                     as it was not totaled by the survey similar to the other fuel types. Data is from 2015 as 
-                                     2020 data has not yet been published."
-                                     ),
-                            tabPanel("Interactive", 
-                                     "Different Regions of the U.S. use Different Combinations of Fuel Types.", ##title
-                                     ## radio buttons to click "all" vs specific census region
-                                     radioButtons(inputId = "pick_place",
-                                                  label = "Choose Region:",
-                                                  choices = c("All",unique(fuel_use_tidy$census_region)),
-                                     ) , ## end radio button 1
-                                     "This Varies by End Use", ## second title
-                                     ## radio buttons to click the end use
-                                     radioButtons(inputId = "pick_use",
-                                                  label = "Choose End Use:",
-                                                  choices = unique(fuel_use$end_use)
-                                                  ) ##end radio button 2
-                                     # end radioButtons overall
-                               ),
-                          )
-                        ), # end sidebar
-                        
-                        ## start main panel
-                        mainPanel(
-                          ##separate into tabs on main panel
-                          tabsetPanel(
-                            tabPanel("Overview", plotOutput("fe_plot")), ##panel that has graph by region/subregion
-                            tabPanel("Total by Region",plotOutput("fe_totals")) ##panel that has totaled graph
-                                      ) ## end tab segmenting
-                              ) ## end main panel
-                          ) ##end panel layout
-             ), ##end tab
+    
              
              
             ##start tab 5
@@ -206,6 +166,50 @@ ui <- fluidPage(
                       ) ##end panel layout
              ), ##end tab
              
+            ##Start tab 4
+            tabPanel("Electricity Grid by End Use by Region", ##title
+                     ##start panel layout
+                     sidebarLayout(
+                       ##start sidebar
+                       sidebarPanel(
+                         tabsetPanel(
+                           tabPanel("Fuel Use By Region",
+                                    "Some appliances will be easier to electrify than others. Use the 'interactive' tab
+                                     to toggle by region and by end use to see how different uses and regions are powered and 
+                                     which end uses are the most energy intensive. 
+                                     'Other' includes lighting, clothes washers, other appliances, etc. Again, wood is excluded
+                                     as it was not totaled by the survey similar to the other fuel types. Data is from 2015 as 
+                                     2020 data has not yet been published."
+                           ),
+                           tabPanel("Interactive", 
+                                    "Different Regions of the U.S. use Different Combinations of Fuel Types.", ##title
+                                    ## radio buttons to click "all" vs specific census region
+                                    radioButtons(inputId = "pick_place",
+                                                 label = "Choose Region:",
+                                                 choices = c("All",unique(fuel_use_tidy$census_region)),
+                                    ) , ## end radio button 1
+                                    "This Varies by End Use", ## second title
+                                    ## radio buttons to click the end use
+                                    radioButtons(inputId = "pick_use",
+                                                 label = "Choose End Use:",
+                                                 choices = unique(fuel_use$end_use)
+                                    ) ##end radio button 2
+                                    # end radioButtons overall
+                           ),
+                         )
+                       ), # end sidebar
+                       
+                       ## start main panel
+                       mainPanel(
+                         ##separate into tabs on main panel
+                         tabsetPanel(
+                           tabPanel("Overview", plotOutput("fe_plot")), ##panel that has graph by region/subregion
+                           tabPanel("Total by Region",plotOutput("fe_totals")) ##panel that has totaled graph
+                         ) ## end tab segmenting
+                       ) ## end main panel
+                     ) ##end panel layout
+            ), ##end tab
+            
             ## Tab 6
              tabPanel("Energy Insecurity", ##title
                       ## start panel layout
