@@ -528,7 +528,8 @@ server <- function(input, output) {
     ggplot(data=insecurity_reactive(), aes(x= fct_reorder(fuel, percent, desc), y=percent, fill=percent))+
              geom_col(aes(fill=percent))+
              scale_fill_gradient(high="red", low="lavender")+
-              labs(x="Main Heating Fuel", y="Percent of Homes Reporting Insecurity", 
+      ylim(0,0.5)+
+              labs(x="Main Heating Fuel", y="Percent of Homes Reporting Insecurity", fill="Percent of Homes" 
                    )+
              theme_minimal()
   },  bg = "transparent"

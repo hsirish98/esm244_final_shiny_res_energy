@@ -19,13 +19,19 @@ insecurity <- read_csv(here("data", "fuels_ins.csv"))
 colnames(insecurity) <- c("fuel", "households_mill", "any_ins", "reduce_food_med", 
                           "unhealthy_temp","disconnect", "unable_heat", "unable_air")
 
+
 insecurity <- insecurity %>% 
   select(-8)
 
+
 ins_tidy <- pivot_longer(insecurity,
-                         cols = (2:7),
+                         cols = (3:7),
                          names_to = "indicator",
-                         values_to = "percent") #%>%
+                         values_to = "houses") %>%
+  mutate(percent = houses/households_mill)
+
+
+#%>%
   #filter(indicator=="any_ins")
 # 
 #  ggplot(ins_tidy, aes(x=fuel, y=percent, fill=percent)) +
